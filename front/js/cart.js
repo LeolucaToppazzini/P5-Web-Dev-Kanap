@@ -1,31 +1,52 @@
+let totalPrice = 0;
 
-fetch("http://localhost:3000/api/products/" )
-.then((data) => data.json())
-.then((products) => {
-  cartProducts(products);
-});
+function fetchIt() {
+  fetch("http://localhost:3000/api/products/" )
+    .then((data) => data.json())
+    .then((products) => {
+      cartProducts(products);
+    });
+}
+
+function updateCart() {
+  
+ 
+  document.getElementById("totalPrice").innerHTML = totalPrice;
+  quantityModifier();
+
+}
+
 
 function cartProducts(array_of_product_objects) {
-  var cartObj = JSON.parse(localStorage.getItem("obj"));
+  var cartObj = JSON.parse(localStorage.getItem("cart"));
+  totalPrice = 0;
 
   // itero sugli elementi dell'array "cartobj" che viene dal local storage (mio carrello)
-  for (let j = 0; j < cartObj.length; j++){
-    var cartProduct = cartObj[j]; // per comodità mi assegno l'elemento j dell'insieme a una variabile (quindi il singolo prodotto)
-    // per ognuno di questi, vado a iterare sugli elementi del database e vedo se l'id corrisponde
-    for (let i = 0; i < array_of_product_objects.length; i++){ //itero
-      storeProduct = array_of_product_objects[i];// come prima per comodità gli do un nome
-      if ( cartProduct['id'] === storeProduct['_id']){// se gli id corrispondono... (occhio ai TRATTINI)
-        // assegno tutte le altre cose a cartProduct (il prod in local storage), prendendole da quello del DB
-           cartProduct['name'] = storeProduct['name'];
-           cartProduct['price'] = storeProduct['price'];
-           cartProduct['image'] = storeProduct['imageUrl'];
-           cartProduct['description'] = storeProduct['description'];
-           cartProduct['alt'] = storeProduct['altTxt'];
-           // infine, col mio cartProduct bello riempito di dati, lo do in pasto alla funzione che genera l'html
-          cartDisplayed(cartProduct);
+  if (cartObj !== undefined) {
+    for (let j = 0; j < cartObj.length; j++){
+      var cartProduct = cartObj[j]; // per comodità mi assegno l'elemento j dell'insieme a una variabile (quindi il singolo prodotto)
+      // per ognuno di questi, vado a iterare sugli elementi del database e vedo se l'id corrisponde
+      for (let i = 0; i < array_of_product_objects.length; i++){ //itero
+        dbProduct = array_of_product_objects[i];// come prima per comodità gli do un nome
+        if ( cartProduct['id'] === dbProduct['_id']){// se gli id corrispondono... (occhio ai TRATTINI)
+          // assegno tutte le altre cose a cartProduct (il prod in local storage), prendendole da quello del DB
+            cartProduct['name'] = dbProduct['name'];
+            cartProduct['price'] = dbProduct['price'];
+            cartProduct['image'] = dbProduct['imageUrl'];
+            cartProduct['description'] = dbProduct['description'];
+            cartProduct['alt'] = dbProduct['altTxt'];
+            totalPrice += cartProduct.price * cartProduct.number;
+            // infine, col mio cartProduct bello riempito di dati, lo do in pasto alla funzione che genera l'html
+            cartDisplayed(cartProduct);
+            break;
+        }
       }
+    }
   }
-}
+  
+  
+  
+  
 }
 
 function cartDisplayed(elementSelected) {
@@ -42,7 +63,6 @@ function cartDisplayed(elementSelected) {
      <h2>${product['name']}</h2>
      <p>${product['color']}</p>
      <p>Price: ${product.price}</p>
-     <p> ${product['price']}</p>
 
    </div>
    <div class="cart__item__content__settings">
@@ -56,7 +76,45 @@ function cartDisplayed(elementSelected) {
    </div>
  </div>
 </article> `
+updateCart();
+
 }
+
+
+function quantityModifier() {
+  const cart = document.querySelectorAll(".cart__item");
+  console.log(cart);
+  // modo per vedere cosa abbiamo visualizzato dinamicamente grazie al set di dati
+   cart.forEach((cart) => {console.log("item panier en dataset: " + " " + cart.dataset.id + " " + cart.dataset.color + " " + cart.dataset.number); }); 
+  // Ascoltiamo ciò che accade in itemQuantity dell'elemento in questione
+  cart.forEach((cart) => {
+    cart.addEventListener("change", (eq) => {
+      // verifica delle informazioni sul valore del click e del loro posizionamento negli articoli
+      let cartMod = JSON.parse(localStorage.getItem("cart"));
+      // ciclo per modificare la quantità del prodotto nel carrello con il nuovo valore
+      for (article of cartMod)
+       
+      console.log(article.id);
+      console.log(cart.dataset.id);
+      console.log(article.color);
+      console.log(cart.dataset.color);
+      if (
+          article.id === cart.dataset.id &&
+          cart.dataset.color === article.color
+        ) {
+          article.number = eq.target.value;
+          localStorage.cart = JSON.stringify(cartMod);
+          // aggiornare il set di dati sulla quantità
+          cart.dataset.number = eq.target.value;
+          // eseguire la funzione per aggiornare i dati
+          updateCart();
+         
+        }
+    });
+  });
+}
+
+
 
 /*
 function cartProducts(index) {

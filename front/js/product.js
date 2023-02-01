@@ -62,28 +62,32 @@ buttonAddToCart.addEventListener("click", function (event) {
     id: productId,
     color: colorValue,
     number: quantityValue,
-
-     
-
-
   };
   let newObj = [obj];
   console.log(newObj);
 
+  function saveCart(cart) {
+    saveObject(cart, "cart");
+  }
+
   //registrazione del nuovo cestino nel localStorage.
-  function saveObject(cart) {
+  function saveObject(value, key = "genericOBJ") {
     //Salviamo nel localStorage un valore associato a una chiave.
     //serializzazione JSON : trasformiamo un oggetto complesso in una stringa
     //JSON.stringify prende un oggetto e lo trasforma in una stringa
-    localStorage.setItem("obj", JSON.stringify(cart));
+    localStorage.setItem(key, JSON.stringify(value));
+  }
+
+  function getCart() {
+    return getObject("cart");
   }
 
   //recuperare l'oggetto localStorage usando getItem per aggiungere un nuovo oggetto
   //recuperare l'elemento con la chiave registrata: obj
-  function getCart() {
+  function getObject(key = "genericOBJ") {
     //registriamo in una variabile del carrello ciò che abbiamo recuperato
-    let cart = localStorage.getItem("obj");
-    return cart == null ? [] : JSON.parse(cart);
+    let value = localStorage.getItem(key);
+    return value == null ? [] : JSON.parse(value);
   }
 
   function addToCart(obj) {
@@ -92,15 +96,16 @@ buttonAddToCart.addEventListener("click", function (event) {
     let searchId = cart.find(
       (element) => element.id == obj.id && element.color == obj.color
     );
-    if (searchId != undefined) {
+    if (searchId !== undefined) {
       // trovato: se diverso da undefined, esiste già nell'array
-      searchId.number = parseInt(searchId.number) + parseInt(obj.number);
+      searchId.number = parseInt(searchId.number) //Carrello vecchio item numero elementi
+              + parseInt(obj.number); //item aggiunto numero elementi
     } else {
       // altrimenti
-      obj.number = quantityValue;
+      //obj.number = quantityValue; //Inutile?
       cart.push(obj); //spingere il progetto nell'array
     }
-    saveObject(cart);
+    saveCart(cart);
     alert("Added to cart");
   }
 
