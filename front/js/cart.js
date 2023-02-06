@@ -12,7 +12,10 @@ function updateCart() {
   
  
   document.getElementById("totalPrice").innerHTML = totalPrice;
+  //deleteItem();
+  deleteArticle();
   quantityModifier();
+  
 
 }
 
@@ -54,7 +57,7 @@ function cartDisplayed(elementSelected) {
   let visualizedCart = document.querySelector("#cart__items"); //piglio l' elemento carrello dove deve stare
   let   product = elementSelected; // un nome per comodità
   /* aggiungo all html il codice relativo alla singola box prodotto */
-  visualizedCart.innerHTML +=  `<article class="cart__item" data-id="${product.id}" data-color="${product.color}">
+  visualizedCart.innerHTML +=  `<article id="art-${product.id}-${product.color}" class="cart__item" data-id="${product.id}" data-color="${product.color}">
  <div class="cart__item__img">
  <img src="${product['image']}" alt="${product['alt']}">
  </div>
@@ -71,7 +74,7 @@ function cartDisplayed(elementSelected) {
        <input type="number" class="itemQuantity" name="itemQuantity" min="1" max="100" value="${product.number}">
      </div>
      <div class="cart__item__content__settings__delete">
-       <p class="deleteItem">Delete</p>
+     <p class="deleteItem" data-id="${product.id}" data-color="${product.color}" onClick="deleteArticle('${product.id}', '${product.color}')">Delete</p>
      </div>
    </div>
  </div>
@@ -85,14 +88,14 @@ function quantityModifier() {
   const cart = document.querySelectorAll(".cart__item");
   console.log(cart);
   // modo per vedere cosa abbiamo visualizzato dinamicamente grazie al set di dati
-   cart.forEach((cart) => {console.log("item panier en dataset: " + " " + cart.dataset.id + " " + cart.dataset.color + " " + cart.dataset.number); }); 
+   cart.forEach((cart) => {console.log("item dataset: " + " " + cart.dataset.id + " " + cart.dataset.color + " " + cart.dataset.number); }); 
   // Ascoltiamo ciò che accade in itemQuantity dell'elemento in questione
   cart.forEach((cart) => {
     cart.addEventListener("change", (eq) => {
       // verifica delle informazioni sul valore del click e del loro posizionamento negli articoli
       let cartMod = JSON.parse(localStorage.getItem("cart"));
       // ciclo per modificare la quantità del prodotto nel carrello con il nuovo valore
-      for (article of cartMod)
+      for (article of cartMod){
        
       console.log(article.id);
       console.log(cart.dataset.id);
@@ -107,14 +110,88 @@ function quantityModifier() {
           // aggiornare il set di dati sulla quantità
           cart.dataset.number = eq.target.value;
           // eseguire la funzione per aggiornare i dati
+          
           updateCart();
          
-        }
+        }}
     });
   });
 }
 
+/*function deleteItem() {
+ 
+  const cartItemDeleteButtons = document.querySelectorAll(".cart__item .deleteItem");
+  
 
+  
+  cartItemDeleteButtons.forEach((cartItemDeleteButton) => {
+    
+    cartItemDeleteButton.addEventListener("click", () => {
+      let cart = JSON.parse(localStorage.getItem("cart"));
+      for (let i = 0; i < cart.length; i++) {
+        let article = cart[i];
+      //for (article of cart) {
+       
+        console.log(article.id);
+        //console.log(cart.dataset.id);
+        console.log(article.color);
+        //console.log(cart.dataset.color);
+        if (article.id === cartItemDeleteButton.dataset.id
+                && cartItemDeleteButton.dataset.color === article.color) {
+          //TODO:
+          cart.splice(i, 1);
+          localStorage.setItem(cart, "cart");
+          break;
+
+
+            //localStorage.cart = JSON.stringify(cartMod);
+            
+            
+            
+           
+          }}
+    });
+  });
+ // updateCart();
+}*/
+
+function deleteArticle(id, color) {
+ 
+  //const cartItemDeleteButtons = document.querySelectorAll(".cart__item .deleteItem");
+  
+
+  
+  //cartItemDeleteButtons.forEach((cartItemDeleteButton) => {
+    
+    //cartItemDeleteButton.addEventListener("click", () => {
+      let cart = JSON.parse(localStorage.getItem("cart"));
+      for (let i = 0; i < cart.length; i++) {
+        let article = cart[i];
+      //for (article of cart) {
+       
+        console.log(article.id);
+        //console.log(cart.dataset.id);
+        console.log(article.color);
+        //console.log(cart.dataset.color);
+        if (article.id === id
+                && article.color === color) {
+          //TODO:
+          cart.splice(i, 1);
+          //localStorage.removeItem("cart");
+          localStorage.setItem("cart", JSON.stringify(cart));
+          document.getElementById("art-" + id + "-" + color).remove();
+          break;
+
+
+            //localStorage.cart = JSON.stringify(cartMod);
+            
+            
+            
+           
+        }
+      }
+ // updateCart();
+}
 
 /*
 function cartProducts(index) {
@@ -171,3 +248,38 @@ function cartProducts(index) {
  //sostituire le virgole che uniscono gli oggetti nell'array con uno spazio vuoto
   // ascoltare le variazioni della quantità per visualizzare e aggiornare i dati
 */
+
+function checkBeforeSubmit() {
+  console.log("checkForm");
+  document.getElementById("firstNameErrorMsg").value = "";
+  document.getElementById("lastNameErrorMsg").value = "";
+  document.getElementById("addressErrorMsg").value = "";
+  document.getElementById("cityErrorMsg").value = "";
+  document.getElementById("emailErrorMsg").value = "";
+  const firstName = document.getElementById("firstName").value;
+  if (!/^[a-zA-Z]+$/.test(firstName)) {
+    document.getElementById("firstNameErrorMsg").value = "wrong format"
+    return false;
+  }
+  const lastName = document.getElementById("lastName").value;
+  if (!/^[a-zA-Z]+$/.test(lastName)) {
+    document.getElementById("lastNameErrorMsg").value = "wrong format"
+    return false;
+  }
+  const address = document.getElementById("address").value;
+  if (!/^[[a-zA-Z]\d][[a-zA-Z]\s\d]*[[a-zA-Z]\d]$/.test(address)) {
+    document.getElementById("addressErrorMsg").value = "wrong format"
+    return false;
+  }
+  const city = document.getElementById("city").value;
+  if (!/^[a-zA-Z][[a-zA-Z]\s]*[a-zA-Z]$/.test(city)) {
+    document.getElementById("cityErrorMsg").value = "wrong format"
+    return false;
+  }
+  const email = document.getElementById("email").value;
+  if (!/^[a-zA-Z\.0-9\_\-]+\@[a-zA-Z]{2,}\.[a-zA-Z]{2,3}$/.test(email)) {
+    document.getElementById("emailErrorMsg").value = "wrong format"
+    return false;
+  }
+  return true;
+}
