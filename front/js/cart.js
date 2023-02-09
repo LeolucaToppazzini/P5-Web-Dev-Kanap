@@ -15,7 +15,7 @@ function updateCart() {
   //deleteItem();
   deleteArticle();
   quantityModifier();
-  
+  checkSubmit();
 
 }
 
@@ -249,37 +249,86 @@ function cartProducts(index) {
   // ascoltare le variazioni della quantità per visualizzare e aggiornare i dati
 */
 
-function checkBeforeSubmit() {
-  console.log("checkForm");
-  document.getElementById("firstNameErrorMsg").value = "";
-  document.getElementById("lastNameErrorMsg").value = "";
-  document.getElementById("addressErrorMsg").value = "";
-  document.getElementById("cityErrorMsg").value = "";
-  document.getElementById("emailErrorMsg").value = "";
-  const firstName = document.getElementById("firstName").value;
-  if (!/^[a-zA-Z]+$/.test(firstName)) {
-    document.getElementById("firstNameErrorMsg").value = "wrong format"
-    return false;
-  }
-  const lastName = document.getElementById("lastName").value;
-  if (!/^[a-zA-Z]+$/.test(lastName)) {
-    document.getElementById("lastNameErrorMsg").value = "wrong format"
-    return false;
-  }
-  const address = document.getElementById("address").value;
-  if (!/^[[a-zA-Z]\d][[a-zA-Z]\s\d]*[[a-zA-Z]\d]$/.test(address)) {
-    document.getElementById("addressErrorMsg").value = "wrong format"
-    return false;
-  }
-  const city = document.getElementById("city").value;
-  if (!/^[a-zA-Z][[a-zA-Z]\s]*[a-zA-Z]$/.test(city)) {
-    document.getElementById("cityErrorMsg").value = "wrong format"
-    return false;
-  }
-  const email = document.getElementById("email").value;
-  if (!/^[a-zA-Z\.0-9\_\-]+\@[a-zA-Z]{2,}\.[a-zA-Z]{2,3}$/.test(email)) {
-    document.getElementById("emailErrorMsg").value = "wrong format"
-    return false;
-  }
-  return true;
+
+function checkSubmit() {
+  // Prendere il form tramite la sua classe
+  const form = document.querySelector('.cart__order__form');
+
+  // Impostare l'evento di invio sul form
+  form.addEventListener('submit', (e) => {
+    // Prevenire l'invio del form
+    e.preventDefault();
+
+    let firstName = document.querySelector("#firstName").value;
+    let lastName = document.querySelector("#lastName").value;
+    let address = document.querySelector("#address").value;
+    let city = document.querySelector("#city").value;
+    let email = document.querySelector("#email").value;
+  
+    // Inizializzare variabili booleane per verificare la validità dei dati
+    let firstNameValid = false;
+    let lastNameValid = false;
+    let addressValid = false;
+    let cityValid = false;
+    let emailValid = false;
+  
+    // Verificare che i campi obbligatori non siano vuoti
+    if (firstName) {
+      firstNameValid = true;
+    } else {
+      document.querySelector("#firstNameErrorMsg").innerHTML = "Il nome è richiesto";
+    }
+    if (lastName) {
+      lastNameValid = true;
+    } else {
+      document.querySelector("#lastNameErrorMsg").innerHTML = "Il cognome è richiesto";
+    }
+    if (address) {
+      addressValid = true;
+    } else {
+      document.querySelector("#addressErrorMsg").innerHTML = "L'indirizzo è richiesto";
+    }
+    if (city) {
+      cityValid = true;
+    } else {
+      document.querySelector("#cityErrorMsg").innerHTML = "La città è richiesta";
+    }
+  
+    // Verificare che l'email sia valida
+    let emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+    if (email.match(emailRegex)) {
+      emailValid = true;
+    } else {
+      document.querySelector("#emailErrorMsg").innerHTML = "Inserisci un'email valida";
+    }
+  
+    // Se tutti i dati sono validi, creare un oggetto di contatto
+    if (firstNameValid && lastNameValid && addressValid && cityValid && emailValid) {
+      let contact = {
+        firstName: firstName,
+        lastName: lastName,
+        address: address,
+        city: city,
+        email: email
+      };
+
+      console.log(contact);
+    
+  
+      // Creare una tabella prodotto
+      let productTable = "";
+
+      console.log(productTable);
+  
+      // Inviare i dati al endpoint ordine
+      // ...
+      // Ottenere l'ID ordine
+      // ...
+    }
+  
+
+    // Log del contatto e della tabella di prodotto per verificare che siano stati creati correttamente
+    
+  });
 }
+
