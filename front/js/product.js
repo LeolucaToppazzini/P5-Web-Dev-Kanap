@@ -98,8 +98,9 @@ buttonAddToCart.addEventListener("click", function (event) {
     );
     if (searchId !== undefined) {
       // trovato: se diverso da undefined, esiste già nell'array
-      searchId.number = parseInt(searchId.number) //Carrello vecchio item numero elementi
-              + parseInt(obj.number); //item aggiunto numero elementi
+      searchId.number =
+        parseInt(searchId.number) + //Carrello vecchio item numero elementi
+        parseInt(obj.number); //item aggiunto numero elementi
     } else {
       // altrimenti
       //obj.number = quantityValue; //Inutile?
