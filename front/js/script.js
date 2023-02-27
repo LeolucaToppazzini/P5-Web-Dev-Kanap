@@ -1,4 +1,6 @@
+// Make a request to the API to retrieve the products
 fetch("http://localhost:3000/api/products")
+// Parse the response as JSON
   .then((data) => {
     return data.json();
   })
@@ -7,7 +9,8 @@ fetch("http://localhost:3000/api/products")
     insertArticles(articles);
   });
 const articleHolder = document.getElementById("items");
-
+// insertArticles function takes an array of product objects as input,
+// loops through each product in the array, and creates a new HTML element to display each one.
 function insertArticles(articles) {
   for (let i = 0; i < articles.length; i++) {
     const article = articles[i];

@@ -1,55 +1,73 @@
 let totalPrice = 0;
+let array_of_product_objects = [];
 
+// fetchIt(): This function sends a GET request to the specified URL, retrieves the response,
+//and converts the response data to a JSON format.
+//Then it assigns the received data to the array_of_product_objects variable and calls the cartProducts() function.
 function fetchIt() {
   fetch("http://localhost:3000/api/products/")
     .then((data) => data.json())
     .then((products) => {
-      cartProducts(products);
+      array_of_product_objects = products;
+      cartProducts();
     });
 }
-
-function updateCart() {
+// updatePrice(): This function updates the value of the totalPrice variable and
+//then updates the HTML element with the id totalPrice to display the updated value.
+function updatePrice() {
+  cartProducts(false);
   document.getElementById("totalPrice").innerHTML = totalPrice;
-  //deleteItem();
-  deleteArticle();
+}
+//initCartFunctions(): This function initializes various cart-related functions,
+//including the quantityModifier() and checkSubmit() functions,
+// and then updates the cart price using the updatePrice() function.
+function initCartFunctions() {
   quantityModifier();
   checkSubmit();
+  updatePrice();
 }
-
-function cartProducts(array_of_product_objects) {
+//cartProducts(): This function retrieves the cart data from the local storage and then iterates over each item in the cart.
+//For each item, it searches for a matching product in the array_of_product_objects variable and
+// updates the item information using the product information.
+//Finally, it calls the cartDisplayed() function to display the cart item on the web page.
+function cartProducts(display = true) {
   var cartObj = JSON.parse(localStorage.getItem("cart"));
   totalPrice = 0;
 
-  // itero sugli elementi dell'array "cartobj" che viene dal local storage (mio carrello)
+  // Iterates over the items in the "cartObj" array that comes from local storage (my cart)
   if (cartObj !== undefined) {
     for (let j = 0; j < cartObj.length; j++) {
-      var cartProduct = cartObj[j]; // per comodità mi assegno l'elemento j dell'insieme a una variabile (quindi il singolo prodotto)
-      // per ognuno di questi, vado a iterare sugli elementi del database e vedo se l'id corrisponde
+      var cartProduct = cartObj[j]; // Assigns the jth element of the set to a variable (so the single product)
+      // For each of these, I iterate over the elements of the database and see if the id matches
       for (let i = 0; i < array_of_product_objects.length; i++) {
         //itero
-        dbProduct = array_of_product_objects[i]; // come prima per comodità gli do un nome
+        dbProduct = array_of_product_objects[i]; //as before, for convenience I give it a name
         if (cartProduct["id"] === dbProduct["_id"]) {
-          // se gli id corrispondono... (occhio ai TRATTINI)
-          // assegno tutte le altre cose a cartProduct (il prod in local storage), prendendole da quello del DB
+          // if the IDs match
+          // Assign all other cartProduct attributes from the DB
           cartProduct["name"] = dbProduct["name"];
           cartProduct["price"] = dbProduct["price"];
           cartProduct["image"] = dbProduct["imageUrl"];
           cartProduct["description"] = dbProduct["description"];
           cartProduct["alt"] = dbProduct["altTxt"];
           totalPrice += cartProduct.price * cartProduct.number;
-          // infine, col mio cartProduct bello riempito di dati, lo do in pasto alla funzione che genera l'html
-          cartDisplayed(cartProduct);
+          // Finally, with the cartProduct full of data, I feed it to the function that generates the HTML
+
+          if (display) {
+            cartDisplayed(cartProduct);
+          }
           break;
         }
       }
     }
   }
 }
-
+//cartDisplayed(elementSelected): This function creates the HTML content for a single cart item
+// based on the provided elementSelected object and then appends it to the cart display area on the web page.
 function cartDisplayed(elementSelected) {
-  let visualizedCart = document.querySelector("#cart__items"); //piglio l' elemento carrello dove deve stare
-  let product = elementSelected; // un nome per comodità
-  /* aggiungo all html il codice relativo alla singola box prodotto */
+  let visualizedCart = document.querySelector("#cart__items"); //gets the cart element where the item should be
+  let product = elementSelected;
+  // Adds to the HTML the code related to the single product box
   visualizedCart.innerHTML += `<article id="art-${product.id}-${product.color}" class="cart__item" data-id="${product.id}" data-color="${product.color}">
  <div class="cart__item__img">
  <img src="${product["image"]}" alt="${product["alt"]}">
@@ -72,95 +90,52 @@ function cartDisplayed(elementSelected) {
    </div>
  </div>
 </article> `;
-  updateCart();
+  initCartFunctions();
 }
-
+//quantityModifier(): This function adds an event listener to each item in the cart to detect changes to the item quantity.
+//When the quantity changes, it updates the corresponding item in the local storage with the new quantity value.
 function quantityModifier() {
-  const cart = document.querySelectorAll(".cart__item");
-  console.log(cart);
-  // modo per vedere cosa abbiamo visualizzato dinamicamente grazie al set di dati
-  cart.forEach((cart) => {
+  const cartHTML = document.querySelectorAll(".cart__item");
+  console.log(cartHTML);
+  // way to see what we have dynamically displayed thanks to the dataset
+  cartHTML.forEach((cartItem) => {
     console.log(
       "item dataset: " +
         " " +
-        cart.dataset.id +
+        cartItem.dataset.id +
         " " +
-        cart.dataset.color +
-        " " +
-        cart.dataset.number
+        cartItem.dataset.color
     );
   });
-  // Ascoltiamo ciò che accade in itemQuantity dell'elemento in questione
-  cart.forEach((cart) => {
-    cart.addEventListener("change", (eq) => {
-      // verifica delle informazioni sul valore del click e del loro posizionamento negli articoli
-      let cartMod = JSON.parse(localStorage.getItem("cart"));
-      // ciclo per modificare la quantità del prodotto nel carrello con il nuovo valore
-      for (article of cartMod) {
+  // Listen to what happens in itemQuantity of the element in question
+  cartHTML.forEach((cartItem) => {
+    cartItem.addEventListener("change", (eq) => {
+      // verify information about the click value and their placement in the items
+      let cartLS = JSON.parse(localStorage.getItem("cart"));
+      // loop to modify the quantity of the product in the cart with the new value
+      for (article of cartLS) {
         console.log(article.id);
-        console.log(cart.dataset.id);
+        console.log(cartItem.dataset.id);
         console.log(article.color);
-        console.log(cart.dataset.color);
+        console.log(cartItem.dataset.color);
         if (
-          article.id === cart.dataset.id &&
-          cart.dataset.color === article.color
+          article.id === cartItem.dataset.id &&
+          article.color === cartItem.dataset.color
         ) {
           article.number = eq.target.value;
-          localStorage.cart = JSON.stringify(cartMod);
-          // aggiornare il set di dati sulla quantità
-          cart.dataset.number = eq.target.value;
-          // eseguire la funzione per aggiornare i dati
+          localStorage.cart = JSON.stringify(cartLS);
 
-          updateCart();
+          // execute the function to update data
+          initCartFunctions();
         }
       }
     });
   });
 }
 
-/*function deleteItem() {
- 
-  const cartItemDeleteButtons = document.querySelectorAll(".cart__item .deleteItem");
-  
-
-  
-  cartItemDeleteButtons.forEach((cartItemDeleteButton) => {
-    
-    cartItemDeleteButton.addEventListener("click", () => {
-      let cart = JSON.parse(localStorage.getItem("cart"));
-      for (let i = 0; i < cart.length; i++) {
-        let article = cart[i];
-      //for (article of cart) {
-       
-        console.log(article.id);
-        //console.log(cart.dataset.id);
-        console.log(article.color);
-        //console.log(cart.dataset.color);
-        if (article.id === cartItemDeleteButton.dataset.id
-                && cartItemDeleteButton.dataset.color === article.color) {
-          //TODO:
-          cart.splice(i, 1);
-          localStorage.setItem(cart, "cart");
-          break;
-
-
-            //localStorage.cart = JSON.stringify(cartMod);
-            
-            
-            
-           
-          }}
-    });
-  });
- // updateCart();
-}*/
-
+//eleteArticle(id, color): This function is called when a user wants to delete an article from the shopping cart.
+// It takes two parameters: the ID and color of the article to be deleted.
 function deleteArticle(id, color) {
-  //const cartItemDeleteButtons = document.querySelectorAll(".cart__item .deleteItem");
-
-  //cartItemDeleteButtons.forEach((cartItemDeleteButton) => {
-
-  //cartItemDeleteButton.addEventListener("click", () => {
   let cart = JSON.parse(localStorage.getItem("cart"));
   for (let i = 0; i < cart.length; i++) {
     let article = cart[i];
@@ -171,79 +146,31 @@ function deleteArticle(id, color) {
     console.log(article.color);
     //console.log(cart.dataset.color);
     if (article.id === id && article.color === color) {
-      //TODO:
       cart.splice(i, 1);
-      //localStorage.removeItem("cart");
+
       localStorage.setItem("cart", JSON.stringify(cart));
       document.getElementById("art-" + id + "-" + color).remove();
+      updatePrice();
       break;
 
       //localStorage.cart = JSON.stringify(cartMod);
     }
   }
-  // updateCart();
+  initCartFunctions();
 }
 
-/*
-function cartProducts(index) {
-    // il cestino convertito viene recuperato
-    let allProducts = index;
-  let cartNew = JSON.parse(localStorage.getItem("obj"));
-  // se esiste un cestino con una dimensione diversa da 0 (quindi maggiore di 0)
-   if (cartNew && cartNew.length != 0) {
-  // zona di corrispondenza chiave/valore dell'api e del carrello grazie all'id del prodotto scelto nel localStorage
-    for (let product of cartNew) {
-      console.log(product);
-      for (let g = 0, h = index.length; g < h; g++) {
-        if (product._id === index[g].id) {
-          // creazione e aggiunta dei valori del paniere che saranno utilizzati per i valori del set di dati
-          //product._id = index[g].id
-          product.name = index[g].name;
-          product.price = index[g].price;
-          product.image = index[g].imageUrl;
-          product.description = index[g].description;
-          product.alt = index[g].altTxt;
-          //product.colors = index[g].color;
-
-          cartDisplayed(product);
-
-
-        }
-      }
-    }
-    // se giochiamo a visualizzare, nel cestino vengono aggiunte chiavi/valori che non sono stati inseriti nella memoria locale e che sono reali
-    // qui il cestino ha i valori della memoria locale + i valori definiti sopra
-    //chiediamo ad affiche() di giocare con i dati del cestino 
-    //i valori aggiunti al carrello hanno un ambito allargato, poiché sono richiamati tramite la funzione cartDisplayed() e in cartDisplayed() non c'è una chiamata al carrello dalla memoria locale.
-    //cartDisplayed(cartNew);
-  } else {
-    // se non c'è un carrello della spesa, creiamo un H1 informativo e una quantità appropriata
-    document.querySelector("#totalQuantity").innerHTML = "0";
-    document.querySelector("#totalPrice").innerHTML = "0";
-    document.querySelector("h1").innerHTML =
-      "You have no items in your cart";
-  }
- 
-}
-//--------------------------------------------------------------
-//Funzione di visualizzazione di un cestino (tabella)
-//--------------------------------------------------------------
-*/
-
-// dichiarare e puntare all'area di visualizzazione
-// abbiamo creato le visualizzazioni dei prodotti del paniere tramite una mappa e l'introduzione del dataset nel codice
-/*
- //sostituire le virgole che uniscono gli oggetti nell'array con uno spazio vuoto
-  // ascoltare le variazioni della quantità per visualizzare e aggiornare i dati
-*/
-
+//checkSubmit(): This function is called when the user clicks on the "Submit Order" button in the shopping cart.
+// It takes no parameters. It retrieves the user's input data from the form, validates the required fields,
+// and checks the validity of the email address. If all the data is valid,
+// it creates an object with the user's contact information and the list of product IDs in the cart.
+//Then it sends the data to the server via a POST request to the endpoint "/api/products/order".
 function checkSubmit() {
-  // Prendere il form tramite la sua classe
+  // Get the form by its class
   const form = document.querySelector(".cart__order__form");
 
-  // Impostare l'evento di invio sul form
+  // Set the submit event on the form
   form.addEventListener("submit", (e) => {
-    // Prevenire l'invio del form
+    // Prevent form submission
     e.preventDefault();
 
     let firstName = document.querySelector("#firstName").value;
@@ -252,26 +179,37 @@ function checkSubmit() {
     let city = document.querySelector("#city").value;
     let email = document.querySelector("#email").value;
 
-    // Inizializzare variabili booleane per verificare la validità dei dati
+    // Initialize boolean variables to check data validity
     let firstNameValid = false;
     let lastNameValid = false;
     let addressValid = false;
     let cityValid = false;
     let emailValid = false;
 
-    // Verificare che i campi obbligatori non siano vuoti
+    // Check that required fields are not empty
     if (firstName) {
-      firstNameValid = true;
+      if (/^[a-zA-Z]+$/.test(firstName)) {
+        firstNameValid = true;
+      } else {
+        document.querySelector("#firstNameErrorMsg").innerHTML =
+          "Il nome deve contenere solo lettere";
+      }
     } else {
       document.querySelector("#firstNameErrorMsg").innerHTML =
         "Il nome è richiesto";
     }
     if (lastName) {
-      lastNameValid = true;
+      if (/^[a-zA-Z]+$/.test(lastName)) {
+        lastNameValid = true;
+      } else {
+        document.querySelector("#lastNameErrorMsg").innerHTML =
+          "Il cognome deve contenere solo lettere";
+      }
     } else {
       document.querySelector("#lastNameErrorMsg").innerHTML =
         "Il cognome è richiesto";
     }
+    
     if (address) {
       addressValid = true;
     } else {
@@ -285,7 +223,7 @@ function checkSubmit() {
         "La città è richiesta";
     }
 
-    // Verificare che l'email sia valida
+    // Check that the email is valid
     let emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
     if (email.match(emailRegex)) {
       emailValid = true;
@@ -294,7 +232,7 @@ function checkSubmit() {
         "Inserisci un'email valida";
     }
 
-    // Se tutti i dati sono validi, creare un oggetto di contatto
+    // If all data is valid, create a contact object
     if (
       firstNameValid &&
       lastNameValid &&
@@ -312,11 +250,6 @@ function checkSubmit() {
 
       console.log(contact);
 
-      // Creare una tabella prodotto
-      let productTable = "";
-
-      console.log(productTable);
-
       let newCartId = [];
 
       let newCart = JSON.parse(localStorage.getItem("cart"));
@@ -329,21 +262,15 @@ function checkSubmit() {
       let finalObject;
 
       finalObject = {
-        contact: {
-          firstName: contact.firstName,
-          lastName: contact.lastName,
-          address: contact.address,
-          city: contact.city,
-          email: contact.email,
-        },
+        contact: contact,
         products: newCartId,
       };
 
       console.log(finalObject);
 
-      // Inviare i dati al endpoint ordine
+      // Send data to order endpoint
       // ...
-      // Ottenere l'ID ordine
+      // Get order ID
       // ...
 
       fetch("http://localhost:3000/api/products/order", {
@@ -360,7 +287,5 @@ function checkSubmit() {
           document.location.href = "confirmation.html?id=" + data.orderId;
         });
     }
-
-    // Log del contatto e della tabella di prodotto per verificare che siano stati creati correttamente
   });
 }
